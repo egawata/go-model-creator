@@ -153,7 +153,7 @@ func getTableColumns(db *sql.DB, table string) ([]Column, map[string]bool) {
 		}
 		res := r.Find([]byte(column.Type))
 		if res != nil {
-			importModules["sql"] = true
+			importModules["database/sql"] = true
 		}
 
 		columns = append(columns, column)
