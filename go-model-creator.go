@@ -22,6 +22,7 @@ var (
 	dsn         string
 	outdir      string
 	packageName string
+	targetTable string
 
 	mayOverrideAll bool = false
 )
@@ -35,6 +36,8 @@ func main() {
 	flag.StringVar(&outdir, "out", "", "Output directory")
 	flag.StringVar(&packageName, "p", "model", "Package Name")
 	flag.StringVar(&packageName, "package", "model", "Package Name")
+	flag.StringVar(&targetTable, "t", "", "Table name")
+	flag.StringVar(&targetTable, "table", "", "Table name")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, `
@@ -72,6 +75,10 @@ Options:`, os.Args[0])
 
 	tables := getTableNames(db)
 	for _, table := range tables {
+		if targetTable != "" && table != targetTable {
+			continue
+		}
+
 		fmt.Println(table)
 		columns, importModules := getTableColumns(db, table)
 		exportModel(table, columns, importModules)
