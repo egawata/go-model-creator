@@ -9,8 +9,8 @@ go get github.com/egawata/go-model-creator
 ## Usage
 
 ```
-go-model-creator --dsn 'root:@/mydatabase' --out modeldir --package mymodel
-go-model-creator --dsn 'root:@/mydatabase' --out modeldir --package mymodel --table book
+go-model-creator --dsn 'root:@/mydatabase?parseTime=true' --out modeldir --package mymodel
+go-model-creator --dsn 'root:@/mydatabase?parseTime=true' --out modeldir --package mymodel --table book
 ```
 
 * dsn: DSN

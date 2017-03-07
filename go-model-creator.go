@@ -83,6 +83,9 @@ Options:`, os.Args[0])
 		columns, importModules := getTableColumns(db, table)
 		exportModel(table, columns, importModules)
 	}
+
+	//  Generate JsonNullString
+	outputJsonNullString()
 }
 
 func extractDbName() string {
@@ -147,6 +150,7 @@ func getTableColumns(db *sql.DB, table string) ([]Column, map[string]bool) {
 		var column = Column{
 			Name: toCamelCase(name),
 			Type: convertType(isNullable, dataType, columnType),
+			Tag:  fmt.Sprintf("`json:\"%s\"`", name),
 		}
 		if column.Type == "*time.Time" {
 			importModules["time"] = true
@@ -294,7 +298,7 @@ func convertType(isNullable, dataType, columnType string) string {
 
 func asString(isNullable string) string {
 	if isNullable == "YES" {
-		return "sql.NullString"
+		return "JsonNullString"
 	} else {
 		return "string"
 	}
@@ -308,6 +312,8 @@ func getTemplate() string {
 	return `package {{.package}}
 
 import (
+	"bytes"
+	"encoding/json"
 {{range .imports}}    "{{.}}"
 {{end}}
 )
@@ -321,5 +327,75 @@ func (r *{{.tableNameCamel}}) TableName() string {
 	return "{{.tableName}}"
 }
 
+func (r *{{.tableNameCamel}}) Set(p map[string]interface{}) error {
+	j, err := json.Marshal(p)
+	if err != nil {
+		return err
+	}
+
+	reader := bytes.NewReader(j)
+	dec := json.NewDecoder(reader)
+	dec.Decode(r)
+
+	return nil
+}
+
 `
+}
+
+func outputJsonNullString() {
+	filename := fmt.Sprintf("%s/json_null_string.go", outdir)
+	fmt.Println("outputJsonNullString")
+
+	file, err := os.Create(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+
+	param := map[string]string{
+		"package": packageName,
+	}
+	tmpl := jsonNullString()
+	t := template.New("t")
+	template.Must(t.Parse(tmpl))
+	t.Execute(file, param)
+}
+
+func jsonNullString() string {
+	return `package {{.package}}
+
+import (
+	"database/sql"
+	"encoding/json"
+)
+
+type JsonNullString struct {
+	sql.NullString
+}
+
+func (v JsonNullString) MarshalJSON() ([]byte, error) {
+	if v.Valid {
+		return json.Marshal(v.String)
+	} else {
+		return json.Marshal(nil)
+	}
+}
+
+func (v *JsonNullString) UnmarshalJSON(data []byte) error {
+	var x *string
+	if err := json.Unmarshal(data, &x); err != nil {
+		return err
+	}
+	if x != nil {
+		v.Valid = true
+		v.String = *x
+	} else {
+		v.Valid = false
+	}
+	return nil
+}
+
+`
+
 }
