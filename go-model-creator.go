@@ -243,7 +243,7 @@ func convertType(isNullable, dataType, columnType string) string {
 	switch dataType {
 	case "int":
 		if isNullable == "YES" {
-			return "sql.NullInt64"
+			return "JsonNullInt64"
 		} else {
 			if isUnsigned {
 				return "uint64"
@@ -253,7 +253,7 @@ func convertType(isNullable, dataType, columnType string) string {
 		}
 	case "smallint":
 		if isNullable == "YES" {
-			return "sql.NullInt64"
+			return "JsonNullInt64"
 		} else {
 			if isUnsigned {
 				return "uint16"
@@ -263,7 +263,7 @@ func convertType(isNullable, dataType, columnType string) string {
 		}
 	case "tinyint":
 		if isNullable == "YES" {
-			return "sql.NullInt64"
+			return "JsonNullInt64"
 		} else {
 			if isUnsigned {
 				return "uint8"
@@ -273,7 +273,7 @@ func convertType(isNullable, dataType, columnType string) string {
 		}
 	case "decimal":
 		if isNullable == "YES" {
-			return "sql.NullFloat64"
+			return "JsonNullFloat64"
 		} else {
 			return "float64"
 		}
@@ -374,6 +374,18 @@ type JsonNullString struct {
 	sql.NullString
 }
 
+type JsonNullInt64 struct {
+	sql.NullInt64
+}
+
+type JsonNullFloat64 struct {
+	sql.NullFloat64
+}
+
+type JsonNullBool struct {
+	sql.NullBool
+}
+
 func (v JsonNullString) MarshalJSON() ([]byte, error) {
 	if v.Valid {
 		return json.Marshal(v.String)
@@ -390,6 +402,72 @@ func (v *JsonNullString) UnmarshalJSON(data []byte) error {
 	if x != nil {
 		v.Valid = true
 		v.String = *x
+	} else {
+		v.Valid = false
+	}
+	return nil
+}
+
+func (v JsonNullInt64) MarshalJSON() ([]byte, error) {
+	if v.Valid {
+		return json.Marshal(v.Int64)
+	} else {
+		return json.Marshal(nil)
+	}
+}
+
+func (v *JsonNullInt64) UnmarshalJSON(data []byte) error {
+	var x *int64
+	if err := json.Unmarshal(data, &x); err != nil {
+		return err
+	}
+	if x != nil {
+		v.Valid = true
+		v.Int64 = *x
+	} else {
+		v.Valid = false
+	}
+	return nil
+}
+
+func (v JsonNullFloat64) MarshalJSON() ([]byte, error) {
+	if v.Valid {
+		return json.Marshal(v.Float64)
+	} else {
+		return json.Marshal(nil)
+	}
+}
+
+func (v *JsonNullFloat64) UnmarshalJSON(data []byte) error {
+	var x *float64
+	if err := json.Unmarshal(data, &x); err != nil {
+		return err
+	}
+	if x != nil {
+		v.Valid = true
+		v.Float64 = *x
+	} else {
+		v.Valid = false
+	}
+	return nil
+}
+
+func (v JsonNullBool) MarshalJSON() ([]byte, error) {
+	if v.Valid {
+		return json.Marshal(v.Bool)
+	} else {
+		return json.Marshal(nil)
+	}
+}
+
+func (v *JsonNullBool) UnmarshalJSON(data []byte) error {
+	var x *bool
+	if err := json.Unmarshal(data, &x); err != nil {
+		return err
+	}
+	if x != nil {
+		v.Valid = true
+		v.Bool = *x
 	} else {
 		v.Valid = false
 	}
