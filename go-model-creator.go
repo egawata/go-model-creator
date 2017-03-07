@@ -345,7 +345,7 @@ func (r *{{.tableNameCamel}}) Set(p map[string]interface{}) error {
 
 func outputJsonNullString() {
 	filename := fmt.Sprintf("%s/json_null_string.go", outdir)
-	fmt.Println("outputJsonNullString")
+	fmt.Println("json_null_string")
 
 	file, err := os.Create(filename)
 	if err != nil {
