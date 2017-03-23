@@ -261,6 +261,26 @@ func convertType(isNullable, dataType, columnType string) string {
 				return "int16"
 			}
 		}
+	case "mediumint":
+		if isNullable == "YES" {
+			return "JsonNullInt64"
+		} else {
+			if isUnsigned {
+				return "uint16"
+			} else {
+				return "int16"
+			}
+		}
+	case "bigint":
+		if isNullable == "YES" {
+			return "JsonNullInt64"
+		} else {
+			if isUnsigned {
+				return "uint8"
+			} else {
+				return "int8"
+			}
+		}
 	case "tinyint":
 		if isNullable == "YES" {
 			return "JsonNullInt64"
@@ -283,7 +303,11 @@ func convertType(isNullable, dataType, columnType string) string {
 		return asString(isNullable)
 	case "text":
 		return asString(isNullable)
+	case "longtext":
+		return asString(isNullable)
 	case "datetime":
+		return asTime()
+	case "time":
 		return asTime()
 	case "date":
 		return asTime()
